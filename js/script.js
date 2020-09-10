@@ -16,12 +16,14 @@ const keys = {
     ArrowRight:false
 };
 
+
 const settings = {
     start: false,
     score: 0,
     speed: 3,
     traffic: 3
 };
+    
 
  function getQuantityElements(heightElement){
     return document.documentElement.clientHeight / heightElement + 1;
@@ -29,7 +31,7 @@ const settings = {
     
  function startGame ()  {
     start.classList.add('hide');
-
+    gameArea.innerHTML = ''; // очищаем поле
     for (let i = 0; i < getQuantityElements(100); i++){
         const line = document.createElement('div');
         line.classList.add('line');
@@ -47,8 +49,12 @@ const settings = {
         enemy.style.background = 'transparent url("../image/enemy2.png")  center / cover no-repeat';
         gameArea.appendChild(enemy);
     }
+    settings.score = 0;
     settings.start = true;
     gameArea.appendChild(car);
+    car.style.left = gameArea.offsetWidth/2 - car.offsetWidth/2; 
+    car.style.top = 'auto';     // убрали стили из css и добавили в файл js чтобы машина была по центру после перезагрузки
+    car.style.bottom = '10px';
     settings.x = car.offsetLeft; // добавляем после того как  добавили ребенка
     settings.y = car.offsetTop; 
     requestAnimationFrame(playGame);
@@ -56,6 +62,8 @@ const settings = {
 
  function playGame () {
      if(settings.start){
+         settings.score += settings.speed;
+         score.innerHTML = 'SCORE<br>' +  settings.score;
         moveRoad();
         moveEnemy();
          if(keys.ArrowLeft && settings.x > 0){
@@ -104,6 +112,17 @@ const settings = {
  function moveEnemy () {
     let enemy = document.querySelectorAll('.enemy');
     enemy.forEach(function(item ){
+        let carRect = car.getBoundingClientRect();
+        let enemyRect = item.getBoundingClientRect();
+        if( carRect.top <= enemyRect.bottom &&
+             carRect.right >= enemyRect.left &&
+             carRect.left <= enemyRect.right &&
+              carRect.bottom >= enemyRect.top){
+            settings.start = false;
+            console.warn('DTP');
+            start.classList.remove('hide');
+            start.style.top = score.offsetHeight; // после столкновения выводиться и перезапуск и очки
+        }
         item.y += settings.speed / 2;
         item.style.top = item.y + 'px';
         if(item.y >= document.documentElement.clientHeight) {
